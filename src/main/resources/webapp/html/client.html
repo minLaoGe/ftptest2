@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<script src="../js/vue.global.js"></script>
+<script src="../js/socket.io.min.js"></script>
+
+<body>
+<div id="app">{{ message }}</div>
+
+</body>
+<script>
+  const { createApp } = Vue
+  createApp({
+    data() {
+      return {
+        message: 'Hello Vue!'
+      }
+    },
+    mounted(){
+        // let href=window.location.host;
+        // let last=href.indexOf(":");
+        // href=href.substring(0,last)
+        let socketAdd="wss://"+"localhost"+":8081";
+        console.log(socketAdd)
+        const socket = io(socketAdd);
+        // client-side
+        socket.on("connect", () => {
+            debugger
+            console.log(socket.connected); // x8WIv7-mJelg7on_ALbx
+            const engine = socket.io.engine;
+            console.log(engine.transport.name); // in most cases, prints "polling"
+
+            engine.on("packet", ({ type, data }) => {
+                // called for each packet received
+                console.log(data)
+            });
+        });
+    }
+  }).mount('#app')
+</script>
+</html>
