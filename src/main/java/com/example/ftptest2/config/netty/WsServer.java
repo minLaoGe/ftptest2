@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 /**
  * 服务端基本配置，通过一个静态单例类，保证启动时候只被加载一次
  */
-@Component
+//@Component
 @Slf4j
 public class WsServer {
 	

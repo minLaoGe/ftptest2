@@ -24,10 +24,15 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web-services</artifactId>
         </dependency>
-        <dependency>
+       <!-- <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
             <version>4.1.28.Final</version>
+        </dependency>-->
+        <dependency>
+            <groupId>com.corundumstudio.socketio</groupId>
+            <artifactId>netty-socketio</artifactId>
+            <version>1.7.19</version>
         </dependency>
         <!-- spring mvc -->
      <!--   <dependency>

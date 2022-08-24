@@ -1,9 +1,12 @@
 package com.example.ftptest2.controller;
 
+import com.corundumstudio.socketio.SocketIOServer;
 import com.example.ftptest2.config.netty.ChatHandler;
 import com.example.ftptest2.utils.FtpTestClient;
+import com.jcraft.jsch.IO;
 import io.netty.channel.Channel;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,12 +15,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @Slf4j
 public class IndexController {
+    @Autowired
+    SocketIOServer ioServer;
+    @Autowired
+    FtpTestClient ftpTestClient;
     @GetMapping("/index.html")
     public String toIndex(){
         return "html/a.html";
     }
-    public static void beginWrite(){
-        FtpTestClient.begin();
+    public  void beginWrite(){
+        ftpTestClient.begin();
     }
     public static void sendMess(){
         log.info("开始打印消息");
@@ -34,4 +41,5 @@ public class IndexController {
         }
 
     }
+
 }

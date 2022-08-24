@@ -1,10 +1,17 @@
 package com.example.ftptest2.utils;
 
+import com.corundumstudio.socketio.SocketIOServer;
 import com.example.ftptest2.config.netty.ChatHandler;
+import com.example.ftptest2.enitity.FTPConfigAdopt;
+import com.example.ftptest2.enitity.FTPLogin;
 import com.example.ftptest2.enitity.TpcCredentialsDTO;
+import com.example.ftptest2.service.NettySocketServer;
 import com.jcraft.jsch.*;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.net.ftp.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.text.DateFormat;
@@ -19,69 +26,23 @@ import java.util.List;
  * @version 0.1
  */
 @Slf4j
+@Component
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class FtpTestClient {
      
     public final static int DEFAULT_FTP_PORT = 21;
-     
-    private FTPClient ftpc;
-         
-    public static void main(String[] args) {
-        String host_names = "192.20.96.50";
-        String user_names = "app";
-        String passwords =  "hzsmktest";
-        String src = "/home/app/logs/mobilemsg/20220823/mobilemsg/msg.log";
-        String ftp_src_file = "msg.log";
-        int port=10022;
-         
-       /* String[] host_names = {"192.20.96.50"};
-        String[] user_names = {"app"};
-        String[] passwords =  {"hzsmktest"};
-        String ftp_src_folder = "/home/app/logs/mobilemsg/20220823/mobilemsg";
-        String ftp_src_file = "msg.log";
-        int port=10022;
 
-        for (int i = 0; i < host_names.length; i++) {
-            FtpTestClient.getFile(host_names[i], user_names[i],
-                passwords[i], ftp_src_folder, ftp_src_file,port);
-        }*/
-        TpcCredentialsDTO tpcCredentialsDTO = new TpcCredentialsDTO().setHost(host_names).setPort(port).setUsername(user_names).setPassword(passwords).setFileServersPath(src)
-                .setLocalPath(ftp_src_file).setFileServersCommand("tail -f "+src);
-        downloadFile(tpcCredentialsDTO);
+    private final NettySocketServer messageHander;
+
+    private final com.example.ftptest2.enitity.FTPClient ftpClient;
+
+    public  void begin(){
+        FTPConfigAdopt ftpConfigAdopt = new FTPConfigAdopt(ftpClient);
+        ftpConfigAdopt.setCommand("tail -f ");
+        downloadFile(ftpConfigAdopt);
     }
 
 
-    public FtpTestClient() {
-
-    }
-    public static void begin(){
-        String host_names = "192.20.96.50";
-        String user_names = "app";
-        String passwords =  "hzsmktest";
-        String src = "/home/app/logs/mobilemsg/20220823/mobilemsg/msg.log";
-        String ftp_src_file = "msg.log";
-        int port=10022;
-
-       /* String[] host_names = {"192.20.96.50"};
-        String[] user_names = {"app"};
-        String[] passwords =  {"hzsmktest"};
-        String ftp_src_folder = "/home/app/logs/mobilemsg/20220823/mobilemsg";
-        String ftp_src_file = "msg.log";
-        int port=10022;
-
-        for (int i = 0; i < host_names.length; i++) {
-            FtpTestClient.getFile(host_names[i], user_names[i],
-                passwords[i], ftp_src_folder, ftp_src_file,port);
-        }*/
-        TpcCredentialsDTO tpcCredentialsDTO = new TpcCredentialsDTO().setHost(host_names).setPort(port).setUsername(user_names).setPassword(passwords).setFileServersPath(src)
-                .setLocalPath(ftp_src_file).setFileServersCommand("tail -f "+src);
-        downloadFile(tpcCredentialsDTO);
-    }
-
-    public FtpTestClient(String host, String login, String passwd)
-    throws Exception
-    {
-        this(host, String.valueOf(FtpTestClient.DEFAULT_FTP_PORT), login, passwd);
-    }
     /**
      * Creates a new instance of FtpTestClient
      * 
@@ -92,16 +53,8 @@ public class FtpTestClient {
      * @param passwd FTP login password
      * @throws Exception if client create fails
      */
-    public FtpTestClient(String host, String port, String login, String passwd)
-    throws Exception
-    {
-        try {
-            ftpc = new FTPClient();
-        } catch (Exception e) {
-            throw new Exception(e.getMessage());
-        }
-    }
-    public static void downloadFile(TpcCredentialsDTO dto) {
+
+    public  void downloadFile(FTPConfigAdopt ftpConfigAdopts) {
         log.trace("Entering downloadFile() method");
 
         Session session = null;
@@ -110,19 +63,20 @@ public class FtpTestClient {
 
         try {
             JSch jsch = new JSch();
-            session = jsch.getSession(dto.getUsername(), dto.getHost(),
-                    dto.getPort());
-            session.setPassword(dto.getPassword());
+            FTPLogin ftpLogin = ftpConfigAdopts.getFtpLogin();
+            session = jsch.getSession(ftpLogin.getUsername(), ftpLogin.getRemotehost(),
+                    ftpLogin.getPort());
+            session.setPassword(ftpLogin.getPasssword());
 
             session.setConfig("StrictHostKeyChecking", "no");
             session.connect();
-            log.info("Connected to " + dto.getHost() + ".");
+            log.info("Connected to " + ftpLogin.getRemotehost() + ".");
 
             channel = session.openChannel("sftp");
             channel.connect();
             channelSftp = (ChannelSftp) channel;
 
-             getFilesToDownload(dto,channelSftp,session);
+             getFilesToDownload(ftpConfigAdopts,channelSftp,session);
 
         } catch (Exception ex) {
             log.error("error:",ex);
@@ -140,35 +94,39 @@ public class FtpTestClient {
         log.trace("Exiting downloadFile() method");
     }
 
-    private static void getFilesToDownload(TpcCredentialsDTO dto, ChannelSftp sftp,Session session) throws SftpException {
+    private  void getFilesToDownload(FTPConfigAdopt ftpConfigAdopts, ChannelSftp sftp,Session session) throws SftpException {
 //        sftp.cd(dto.getFileServersPath());
         // If you need to display the progress of the upload, read how to do it in the end of the article
         try {
-            Channel channel=session.openChannel("exec");
-            ((ChannelExec)channel).setCommand(dto.getFileServersCommand());
-            ((ChannelExec)channel).setErrStream(System.err);
-            InputStream in=channel.getInputStream();
-            channel.connect();
-            byte[] tmp=new byte[1024];
-            while(true){
-                while(in.available()>0){
-                    int i=in.read(tmp, 0, 1024);
-                    if(i<0)break;
-                    String str = new String(tmp, 0, i);
-                    log.info(str);
-                    for (io.netty.channel.Channel client : ChatHandler.clients) {
+                Channel channel=session.openChannel("exec");
+                ((ChannelExec)channel).setCommand(ftpConfigAdopts.getCommand());
+                ((ChannelExec)channel).setErrStream(System.err);
+                InputStream in=channel.getInputStream();
+                channel.connect();
+                byte[] tmp=new byte[4096];
+
+                while(true){
+                    while(in.available()>0){
+                        int i=in.read(tmp, 0, 4096);
+                        if(i<0)break;
+                        String str = new String(tmp, 0, i);
+                        log.info(str);
+                        messageHander.handleMessage(str);
+                    /* for (io.netty.channel.Channel client : ChatHandler.clients) {
                         if (client.isWritable()){
                             client.writeAndFlush(str);
                         }
+                    }*/
                     }
+                    if(channel.isClosed()){
+//                    Thread.sleep(2000);
+                        log.error("exit-status: "+channel.getExitStatus());
+                        messageHander.handleMessage("\n\n没有找到文件,,,请重新刷新浏览器===========================================");
+                        break;
+                    }
+                    try{Thread.sleep(1000);}catch(Exception ee){}
                 }
-                if(channel.isClosed()){
-                    log.error("exit-status: "+channel.getExitStatus());
-                    break;
-                }
-                try{Thread.sleep(1000);}catch(Exception ee){}
-            }
-            channel.setInputStream(null);
+                channel.setInputStream(null);
         } catch (Exception e) {
             log.error("服务器断开链接",e);
         }

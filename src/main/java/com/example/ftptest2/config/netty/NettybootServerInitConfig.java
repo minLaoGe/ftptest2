@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
  * netty服务端启动加载配置
  */
 
-@Component
+//@Component
 public class NettybootServerInitConfig implements ApplicationListener<ContextRefreshedEvent> {
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
@@ -17,7 +17,7 @@ public class NettybootServerInitConfig implements ApplicationListener<ContextRef
 			WsServer.getInstance().start();
 			Thread thread = new Thread(IndexController::sendMess);
 			thread.start();
-			IndexController.beginWrite();
+//			IndexController.beginWrite();
 
 		}
 	}
