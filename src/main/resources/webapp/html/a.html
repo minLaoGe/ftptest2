@@ -11,7 +11,9 @@
 <script src="js/getUrl.js"></script>
 `
 <body>
-<div id="app" >{{message}}</div>
+<div id="app" >
+    <div v-html="message"></div>
+</div>
 
 </body>
 <script>
@@ -23,7 +25,7 @@
       }
     },
     mounted(){
-        let url = getUrl("/ftp/socket");
+        let url = getUrl("");
         console.log("开始链接socket:",url)
         const socket = io.connect(url);
 
