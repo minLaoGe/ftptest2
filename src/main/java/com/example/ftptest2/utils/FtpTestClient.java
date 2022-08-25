@@ -38,7 +38,7 @@ public class FtpTestClient {
 
     public  void begin(){
         FTPConfigAdopt ftpConfigAdopt = new FTPConfigAdopt(ftpClient);
-        ftpConfigAdopt.setCommand("tail -f ");
+        ftpConfigAdopt.setCommand("tail -200f ");
         downloadFile(ftpConfigAdopt);
     }
 

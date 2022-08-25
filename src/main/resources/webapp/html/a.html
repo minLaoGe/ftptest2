@@ -4,11 +4,14 @@
     <meta charset="UTF-8">
     <title>Title</title>
 </head>
-<script src="../js/vue.global.js"></script>
-<script src="../js/socket.io.js"></script>
-
+<script src="js/axios.min.js"></script>
+<script src="js/vue.global.js"></script>
+<script src="js/socket.io.js"></script>
+<script src="js/http.js"></script>
+<script src="js/getUrl.js"></script>
+`
 <body>
-<div id="app" v-html="message"></div>
+<div id="app" >{{message}}</div>
 
 </body>
 <script>
@@ -20,13 +23,10 @@
       }
     },
     mounted(){
-        let href=window.location.host;
-        let last=href.indexOf(":");
-        href=href.substring(0,last)
-        // let socketAdd="wss://"+href+":8081";
-        let socketAdd="http://"+href+":8081";
-        console.log(socketAdd)
-        const socket = io.connect(socketAdd);
+        let url = getUrl("/ftp/socket");
+        console.log("开始链接socket:",url)
+        const socket = io.connect(url);
+
         // client-side
         socket.on("connect", () => {
                 console.log("开始建立链接")

@@ -23,6 +23,10 @@ public class IndexController {
     public String toIndex(){
         return "html/a.html";
     }
+    @GetMapping("/index2.html")
+    public String index2(){
+        return "html/b.html";
+    }
     public  void beginWrite(){
         ftpTestClient.begin();
     }

@@ -5,4 +5,5 @@ import org.springframework.stereotype.Service;
 
 public interface MessageHandler {
    void handleMessage(String mssage);
+   void test(String mssage);
 }

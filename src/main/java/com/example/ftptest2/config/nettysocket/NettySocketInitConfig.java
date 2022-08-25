@@ -23,11 +23,11 @@ public class NettySocketInitConfig  implements ApplicationListener<ContextRefres
     public void onApplicationEvent(ContextRefreshedEvent event) {
         if(event.getApplicationContext().getParent() == null){
             ioServer.start();
- /*           Thread thread = new Thread(()->{
-                socketServer.handleMessage("ioServer");
+            Thread thread = new Thread(()->{
+                socketServer.test("ioServer");
             });
-            thread.start();*/
-            indexController.beginWrite();
+            thread.start();
+//            indexController.beginWrite();
         }
     }
 

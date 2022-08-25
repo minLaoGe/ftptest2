@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+<!--    <embed type="text/html" src="header.html">-->
+    <script src="js/axios.min.js"></script>
+    <script src="js/vue.global.js"></script>
+    <script src="js/socket.io.js"></script>
+    <script src="js/http.js"></script>
+    <script src="js/getUrl.js"></script>
+</head>
+<body>
+<div id="app" >
+    <div style="position: fixed">
+        <label>请输入手机号: </label>
+        <input placeholder="13020162922" >{{phonenum}} </input>
+        <button>确定搜索</button>
+        <a style="font-color: red">{{tips}}<a/>
+    </div>
+
+    <br/>
+    <div></div>
+
+
+</div>
+
+</body>
+<script>
+    const {createApp} = Vue
+    createApp({
+        data() {
+            return {
+                message: 'Hello Vue!',
+                phonenum: "",
+                tips: "",
+            }
+        },
+        mounted() {
+            let url = getUrl("/socket/");
+            console.log("开始链接socket:",url)
+            const socket = io.connect(url);
+            // client-side
+            socket.on("connect", () => {
+                console.log("开始建立链接")
+            });
+            let that = this;
+            socket.on("chatEvent", (data) => {
+                console.log(data); // x8WIv7-mJelg7on_ALbx
+                that.message += data;
+                console.log(socket.connected); // x8WIv7-mJelg7on_ALbx
+                const engine = socket.io.engine;
+                console.log(engine.transport.name); // in most cases, prints "polling"
+
+                engine.on("packet", ({type, data}) => {
+                    // called for each packet received
+                    console.log(data)
+                });
+            });
+        },
+        methods() {
+            function getMoney() {
+                let that=this;
+                get("/changeKeyWord",this.phonenum).then(function (res) {
+                    if (res.success){
+                            that.tips="请求成功";
+                    }
+                })
+            }
+        }
+    }).mount('#app')
+</script>
+</html>
