@@ -3,6 +3,8 @@ package com.example.ftptest2.enitity;
 
 import com.example.ftptest2.utils.DateUtil;
 import lombok.Getter;
+import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.FTPClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +15,7 @@ import java.util.Date;
 import java.util.List;
 
 @Getter
+@Setter
 public class FTPConfigAdopt extends ExecuteFTP {
 
 //    @Value("${ftp.witheListCommand}")
@@ -20,6 +23,7 @@ public class FTPConfigAdopt extends ExecuteFTP {
     private FTPLogin ftpLogin;
 
     private String command;
+    private String commandSuffix;
 
     private List<String> whiteCommandList;
 
@@ -38,12 +42,17 @@ public class FTPConfigAdopt extends ExecuteFTP {
         if (!whiteCommandList.contains(command.trim())){
             throw new  RuntimeException("非法命令");
         };
+
         this.command = command;
     }
 
 
 
     public String getCommand() {
-        return command+ftpLogin.getSrc()+ftpLogin.getFilename();
+        String comman=command+ftpLogin.getSrc()+ftpLogin.getFilename();
+        if (StringUtils.isNotEmpty(this.commandSuffix)){
+              comman= comman+commandSuffix;
+        }
+        return comman;
     }
 }
