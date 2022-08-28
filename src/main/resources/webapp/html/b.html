@@ -14,13 +14,13 @@
 <div id="app" >
     <div style="position: fixed">
         <label>请输入手机号: </label>
-        <input placeholder="13020162922" >{{phonenum}} </input>
-        <button>确定搜索</button>
+        <input placeholder="13020162922" :value="phonenum" > </input>
+        <button @click="getMoney()">确定搜索</button>
         <a style="font-color: red">{{tips}}<a/>
     </div>
 
     <br/>
-    <div></div>
+    <div v-html="message"></div>
 
 
 </div>
@@ -32,39 +32,59 @@
         data() {
             return {
                 message: 'Hello Vue!',
-                phonenum: "",
+                phonenum: "13020162922",
+                defaultPhonme: "13020162922",
                 tips: "",
+                socket: "",
+                prefix: "loginEvent",
             }
         },
         mounted() {
-            let url = getUrl("/socket/");
-            console.log("开始链接socket:",url)
-            const socket = io.connect(url);
-            // client-side
-            socket.on("connect", () => {
-                console.log("开始建立链接")
-            });
-            let that = this;
-            socket.on("chatEvent", (data) => {
-                console.log(data); // x8WIv7-mJelg7on_ALbx
-                that.message += data;
-                console.log(socket.connected); // x8WIv7-mJelg7on_ALbx
-                const engine = socket.io.engine;
-                console.log(engine.transport.name); // in most cases, prints "polling"
-
-                engine.on("packet", ({type, data}) => {
-                    // called for each packet received
-                    console.log(data)
-                });
-            });
+          this.defaultBeginSOcket(this.prefix+this.phonenum);
         },
-        methods() {
-            function getMoney() {
+        methods: {
+            defaultBeginSOcket: function(event){
+                let url = getUrl();
+                console.log("开始监听事件:",event)
+                console.log("开始链接socket:",url)
+                this.socket = io.connect(url);
+                socket=this.socket;
+                // client-side
+                socket.on("connect", () => {
+                    console.log("开始建立链接")
+                });
+                let that = this;
+                socket.on(event, (data) => {
+                    console.log(data); // x8WIv7-mJelg7on_ALbx
+                    that.message += data;
+                    console.log(socket.connected); // x8WIv7-mJelg7on_ALbx
+                    const engine = socket.io.engine;
+                    console.log(engine.transport.name); // in most cases, prints "polling"
+
+                    engine.on("packet", ({type, data}) => {
+                        // called for each packet received
+                        console.log(data)
+                    });
+                });
+            },
+            closeSocket:function (){
+                this.socket.disconnect();
+            },
+             getMoney: function() {
                 let that=this;
+                 that.closeSocket();
+
+                 this.defaultBeginSOcket(this.prefix+this.phonenum);
                 get("/changeKeyWord",this.phonenum).then(function (res) {
+                    console.log(res)
+                    debugger
                     if (res.success){
                             that.tips="请求成功";
-                    }
+                    }/*else {
+                        location.reload();
+                    }*/
+                }).catch(function (res){
+                    location.reload();
                 })
             }
         }

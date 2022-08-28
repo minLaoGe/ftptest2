@@ -25,6 +25,7 @@ public class IndexController {
     }
     @GetMapping("/index2.html")
     public String index2(){
+        ftpTestClient.beginLoginMessage();
         return "html/b.html";
     }
     public  void beginWrite(){

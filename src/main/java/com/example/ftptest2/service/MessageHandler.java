@@ -4,6 +4,6 @@ import com.corundumstudio.socketio.SocketIOServer;
 import org.springframework.stereotype.Service;
 
 public interface MessageHandler {
-   void handleMessage(String mssage);
+   void handleMessage(String event,String mssage);
    void test(String mssage);
 }

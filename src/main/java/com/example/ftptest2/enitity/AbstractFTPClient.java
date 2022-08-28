@@ -7,6 +7,7 @@ import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -16,7 +17,7 @@ public interface AbstractFTPClient {
 
     String getPassword();
 
-    String[] getWitheListCommand();
+    List<String > getWitheListCommand();
 
     String getUsername();
 

@@ -8,7 +8,7 @@ function apiConfig() {
     }
     window["context"] = location.origin + "/V6.0";
   }
-  baseUrl = window.location.origin;
+  baseUrl = window.location.origin+"/ftp/";
   console.log(baseUrl);
   return baseUrl;
 }
@@ -25,7 +25,7 @@ let loading;// 加载框
 
 // http request 拦截器
 axios.interceptors.request.use(config => {
-  loading = Loading.service({fullscreen:true,text:'拼命加载中',spinner: 'el-icon-loading',background:'rgba(0, 0, 0, 0.8)'});
+  // loading = Loading.service({fullscreen:true,text:'拼命加载中',spinner: 'el-icon-loading',background:'rgba(0, 0, 0, 0.8)'});
   if (config.method === 'post') {
     config.data = qs.stringify(config.data);
   }
@@ -63,11 +63,13 @@ axios.interceptors.response.use(response => {
 
  function get(url, params = {}) {
   let URL = url;
+  // debugger
   if (params) {
-    for (const key in params) {
+ /*   for (const key in params) {
       URL += params[key] + "/";
     }
-    URL = URL.substr(0, URL.length - 1);
+    URL = URL.substr(0, URL.length - 1);*/
+      URL=URL+"/"+params
   }
 
   return new Promise((resolve, reject) => {

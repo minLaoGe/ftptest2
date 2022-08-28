@@ -2,22 +2,23 @@ package com.example.ftptest2.utils;
 
 import com.corundumstudio.socketio.SocketIOServer;
 import com.example.ftptest2.config.netty.ChatHandler;
-import com.example.ftptest2.enitity.FTPConfigAdopt;
-import com.example.ftptest2.enitity.FTPLogin;
-import com.example.ftptest2.enitity.TpcCredentialsDTO;
+import com.example.ftptest2.enitity.*;
 import com.example.ftptest2.service.NettySocketServer;
+import com.google.gson.Gson;
 import com.jcraft.jsch.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.*;
+import org.apache.commons.net.ftp.FTPClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.text.DateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -34,14 +35,22 @@ public class FtpTestClient {
 
     private final NettySocketServer messageHander;
 
-    private final com.example.ftptest2.enitity.FTPClient ftpClient;
+    private  Gson gson=new Gson();
 
+    FTPConfigAdopt ftpConfigAdopt =null;
+   private ConcurrentHashMap<String,FTPConfigAdopt> hashMap=new ConcurrentHashMap<>();
+
+   @Async
     public  void begin(){
-        FTPConfigAdopt ftpConfigAdopt = new FTPConfigAdopt(ftpClient);
-        ftpConfigAdopt.setCommand("tailf ");
-//        ftpConfigAdopt.setCommandSuffix(" | grep  96225");
-        downloadFile(ftpConfigAdopt);
+        ftpConfigAdopt= new FTPConfigAdopt(AllServersUtils.getFtpClient(0));
+        EeventEntity eventEntity = EeventEntity.getEventEntity(EventEmum.CHAT_EVENT);
+
+        downloadFile(ftpConfigAdopt,eventEntity);
     }
+    public void ListenOtherServers(com.example.ftptest2.enitity.FTPClient ftpClient){
+
+    }
+
 
 
     /**
@@ -55,81 +64,136 @@ public class FtpTestClient {
      * @throws Exception if client create fails
      */
 
-    public  void downloadFile(FTPConfigAdopt ftpConfigAdopts) {
-        log.trace("Entering downloadFile() method");
+    public boolean initSessionConnection(FTPConfigAdopt ftpConfigAdopts) {
+        JSch jsch = new JSch();
 
-        Session session = null;
-        Channel channel = null;
-        ChannelSftp channelSftp = null;
-
+        FTPLogin ftpLogin = ftpConfigAdopts.getFtpLogin();
         try {
-            JSch jsch = new JSch();
-            FTPLogin ftpLogin = ftpConfigAdopts.getFtpLogin();
-            session = jsch.getSession(ftpLogin.getUsername(), ftpLogin.getRemotehost(),
+            Session session = jsch.getSession(ftpLogin.getUsername(), ftpLogin.getRemotehost(),
                     ftpLogin.getPort());
             session.setPassword(ftpLogin.getPasssword());
-
             session.setConfig("StrictHostKeyChecking", "no");
             session.connect();
-            log.info("Connected to " + ftpLogin.getRemotehost() + ".");
-
-            channel = session.openChannel("sftp");
-            channel.connect();
-            channelSftp = (ChannelSftp) channel;
-
-             getFilesToDownload(ftpConfigAdopts,channelSftp,session);
-
-        } catch (Exception ex) {
-            log.error("error:",ex);
-        }finally {
-            if (channelSftp.isConnected()) {
+            ftpConfigAdopts.getFtpLogin().setSession(session);
+            log.info("登录服务器成功======{}",gson.toJson(ftpConfigAdopts.getFtpLogin().getRemotehost()));
+            return true;
+        } catch (JSchException e) {
+            log.error("error:",e);
+            ftpConfigAdopts.setReconnectCount(ftpConfigAdopts.getReconnectCount()+1);
+            if (ftpConfigAdopts.getReconnectCount()<3){
                 try {
-                    session.disconnect();
-                    channel.disconnect();
-                    channelSftp.quit();
-                } catch (Exception ioe) {
-                    log.error("errror",ioe);
+                    Thread.sleep(10000);
+                } catch (InterruptedException ex) {
+                    throw new RuntimeException(ex);
+                }
+                boolean b = this.initSessionConnection(ftpConfigAdopts);
+                if (b){
+                    log.info("登录服务器成功======{},重试次数为{}",gson.toJson(ftpConfigAdopts.getFtpLogin()),ftpConfigAdopts.getReconnectCount());
+                    return true;
                 }
             }
+            log.info("登录服务器失败======{},重试次数为{}",gson.toJson(ftpConfigAdopts.getFtpLogin()),ftpConfigAdopts.getReconnectCount());
+            return false;
+        }
+    }
+    public  void downloadFile(FTPConfigAdopt ftpConfigAdopts,EeventEntity eeventEntity) {
+        log.trace("Entering downloadFile() method");
+
+        try {
+            initSessionConnection(ftpConfigAdopts);
+            eeventEntity.setServerIp(ftpConfigAdopts.getFtpLogin().getRemotehost());
+            beginBoradFirstPayMessage(ftpConfigAdopts,eeventEntity);
+        } catch (Exception ex) {
+            log.error("error:",ex);
         }
         log.trace("Exiting downloadFile() method");
     }
 
-    private  void getFilesToDownload(FTPConfigAdopt ftpConfigAdopts, ChannelSftp sftp,Session session) throws SftpException {
+    public void BeginListenOtherServer(FTPConfigAdopt ftpConfigAdopt,EeventEntity eeventEntity){
+        log.trace("Entering downloadFile() method");
+
+        try {
+           if (!hashMap.containsKey(eeventEntity.getServerIp())){
+               initSessionConnection(ftpConfigAdopt);
+           }else {
+               FTPConfigAdopt ftpConfigAdopt1 = hashMap.get(eeventEntity.getServerIp());
+               beginBoradFirstPayMessage(ftpConfigAdopt1,eeventEntity);
+           }
+        } catch (Exception ex) {
+            log.error("error:",ex);
+        }
+        log.trace("Exiting downloadFile() method");
+    }
+    public void beginBoradLoginEvent(String keyword) throws SftpException {
+            if (Objects.isNull(ftpConfigAdopt)){
+                throw new  RuntimeException("连接服务器失败");
+            }
+        EeventEntity eventEntity = EeventEntity.getEventEntity(EventEmum.LOGIN_EVENT);
+            if (StringUtils.isNotEmpty(keyword)){
+                List<String> strings = Arrays.asList(keyword);
+                eventEntity.setKeyWords(strings);
+            }
+        eventEntity.setName(eventEntity.getName()+keyword);
+        FTPConfigAdopt ftpConfigAdopt1 = new FTPConfigAdopt(AllServersUtils.getFtpClient(1));
+        downloadFile(ftpConfigAdopt1,eventEntity);
+    }
+
+    private  void beginBoradFirstPayMessage(FTPConfigAdopt ftpConfigAdopts,EeventEntity event) throws SftpException {
 //        sftp.cd(dto.getFileServersPath());
         // If you need to display the progress of the upload, read how to do it in the end of the article
+        Channel channel=null;
         try {
-                Channel channel=session.openChannel("exec");
-                ((ChannelExec)channel).setCommand(ftpConfigAdopts.getCommand());
-                ((ChannelExec)channel).setErrStream(System.err);
-                InputStream in=channel.getInputStream();
-                channel.connect();
-                byte[] tmp=new byte[4096];
+                while (true){
+                     channel=ftpConfigAdopts.getFtpLogin().getSession().openChannel("exec");
+                    ((ChannelExec)channel).setCommand(event.getCompliteComand());
+                    log.info("command:{}",event.getCompliteComand());
+                    ((ChannelExec)channel).setErrStream(System.err);
+                    InputStream in=channel.getInputStream();
+                    channel.connect();
+                    ftpConfigAdopts.getFtpLogin().getChannel().put(EventEmum.CHAT_EVENT.getName(), channel);
+                    byte[] tmp=new byte[4096];
+                    if (!hashMap.containsKey(event.getServerIp())){
+                        hashMap.put(event.getServerIp(),ftpConfigAdopts);
+                    }
+                    while(true){
+                        while(in.available()>0){
+                            int i=in.read(tmp, 0, 4096);
+                            if(i<0)break;
+                            String str = new String(tmp, 0, i);
+                            log.info(str);
+                            log.info("事件名称:{}",event.getName());
 
-                while(true){
-                    while(in.available()>0){
-                        int i=in.read(tmp, 0, 4096);
-                        if(i<0)break;
-                        String str = new String(tmp, 0, i);
-                        log.info(str);
-                        messageHander.handleMessage(str);
-                    /* for (io.netty.channel.Channel client : ChatHandler.clients) {
-                        if (client.isWritable()){
-                            client.writeAndFlush(str);
+                            messageHander.handleMessage(event.getName(),str);
+
                         }
-                    }*/
+                        if(channel.isClosed()){
+                            log.error("exit-status: "+channel.getExitStatus());
+                            ftpConfigAdopts.setReconnectCount(ftpConfigAdopts.getReconnectCount()+1);
+                            messageHander.handleMessage(event.getName(),"\n\n没有找到今日日志文件,,,正在重连服务器===========================================");
+                            break;
+                        }
+                        try{Thread.sleep(1000);}catch(Exception ee){}
                     }
-                    if(channel.isClosed()){
-//                    Thread.sleep(2000);
-                        log.error("exit-status: "+channel.getExitStatus());
-                        messageHander.handleMessage("\n\n没有找到文件,,,请重新刷新浏览器===========================================");
-                        break;
+//                    ftpConfigAdopts.setReconnectCount(ftpConfigAdopts.getReconnectCount()+1);
+                    channel.setInputStream(null);
+                    if (ftpConfigAdopts.getReconnectCount()>3){
+                        throw new RuntimeException("执行命令次数大于3断开命令");
                     }
-                    try{Thread.sleep(1000);}catch(Exception ee){}
+                    Thread.sleep(3000);
                 }
-                channel.setInputStream(null);
         } catch (Exception e) {
             log.error("服务器断开链接",e);
+            throw new RuntimeException("执行命令次数大于3断开命令");
+        }finally {
+            if (!Objects.isNull(channel)&&!channel.isClosed()){
+                channel.disconnect();
+            }
+            if (hashMap.containsKey(event.getServerIp())){
+                hashMap.remove(event.getServerIp());
+            }
+          /*  if (ftpConfigAdopts.getFtpLogin().getSession().isConnected()){
+                ftpConfigAdopts.getFtpLogin().getSession().disconnect();
+            }*/
         }
 
         // use the get method , if you are using android remember to remove "file://" and use only the relative path
@@ -312,6 +376,10 @@ public class FtpTestClient {
     public int getMode() {
         return -1;
     }
-     
-     
+
+
+    public void beginLoginMessage() {
+
+
+    }
 }

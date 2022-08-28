@@ -2,14 +2,18 @@ package com.example.ftptest2.enitity;
 
 
 import com.example.ftptest2.utils.DateUtil;
+import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.Session;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.FTPClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -22,10 +26,14 @@ public class FTPConfigAdopt extends ExecuteFTP {
 
     private FTPLogin ftpLogin;
 
-    private String command;
-    private String commandSuffix;
+
 
     private List<String> whiteCommandList;
+    private int reconnectCount=0;
+    private int reExecuCommandCount=0;
+
+
+
 
 
     public FTPConfigAdopt(AbstractFTPClient abstractFTPClient) {
@@ -34,25 +42,9 @@ public class FTPConfigAdopt extends ExecuteFTP {
                 .setPasssword(abstractFTPClient.getPassword()).setFilename(abstractFTPClient.getFilename())
                 .setPort(abstractFTPClient.getPort()).setRemotehost(abstractFTPClient.getHost())
                 .setUsername(abstractFTPClient.getUsername());
-        String[] witheListCommand = abstractFTPClient.getWitheListCommand();
-        this.whiteCommandList=Arrays.asList(witheListCommand);
-    }
-
-    public void setCommand(String command) {
-        if (!whiteCommandList.contains(command.trim())){
-            throw new  RuntimeException("非法命令");
-        };
-
-        this.command = command;
+        this.whiteCommandList= abstractFTPClient.getWitheListCommand();
     }
 
 
 
-    public String getCommand() {
-        String comman=command+ftpLogin.getSrc()+ftpLogin.getFilename();
-        if (StringUtils.isNotEmpty(this.commandSuffix)){
-              comman= comman+commandSuffix;
-        }
-        return comman;
-    }
 }

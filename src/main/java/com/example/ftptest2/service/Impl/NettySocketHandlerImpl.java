@@ -1,5 +1,6 @@
 package com.example.ftptest2.service.Impl;
 
+import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.example.ftptest2.enitity.ChatObject;
 import com.example.ftptest2.service.NettySocketServer;
@@ -8,24 +9,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
+
 @Service
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @Slf4j
 public class NettySocketHandlerImpl implements NettySocketServer {
     private  final SocketIOServer socketIOServer;
     @Override
-    public void handleMessage(String message) {
-       /* ChatObject chatObject = new ChatObject();
-        chatObject.setMessage(message);
-        chatObject.setUserName("user");*/
+    public void handleMessage(String event,String message) {
 
-        socketIOServer.getBroadcastOperations().sendEvent("chatEvent", message +"                 " +
-                "" +
-                "\n" +
-                "\n" +
-                "");
-//        test(message);
-
+        socketIOServer.getBroadcastOperations().sendEvent(event, message +"</br>  ");
 
     }
 

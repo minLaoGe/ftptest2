@@ -28,7 +28,7 @@
         const socket = io(socketAdd);
         // client-side
         socket.on("connect", () => {
-            debugger
+            // debugger
             console.log(socket.connected); // x8WIv7-mJelg7on_ALbx
             const engine = socket.io.engine;
             console.log(engine.transport.name); // in most cases, prints "polling"
