@@ -8,6 +8,7 @@ import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.example.ftptest2.enitity.ChatObject;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,6 +26,8 @@ public class NeetyConfiguration {
     @Value("${socket.port}")
     public Integer port;
 
+    @Autowired
+    private   SocketIOServer socketIOServer;
       @Bean
       public SocketIOServer getServers(DataListener<ChatObject> obj,ConnectListener connectListener){
           com.corundumstudio.socketio.Configuration configuration = new com.corundumstudio.socketio.Configuration();
@@ -55,8 +58,9 @@ public class NeetyConfiguration {
           return  new ConnectListener() {
               @Override
               public void onConnect(SocketIOClient socketIOClient) {
+                  int size = socketIOServer.getAllClients().size();
                   UUID sessionId = socketIOClient.getSessionId();
-                    log.info("客户端建立连接id为:{}",sessionId.toString());
+                    log.info("客户端建立连接id为:{};ip为:{};至今一共有{}个客户端链接",sessionId.toString(),socketIOClient.getRemoteAddress(),size);
               }
           };
       }

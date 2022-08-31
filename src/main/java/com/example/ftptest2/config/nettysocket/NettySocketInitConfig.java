@@ -16,8 +16,6 @@ public class NettySocketInitConfig  implements ApplicationListener<ContextRefres
     @Autowired
     private SocketIOServer ioServer;
     @Autowired
-    private NettySocketServer socketServer;
-    @Autowired
     private IndexController indexController;
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
