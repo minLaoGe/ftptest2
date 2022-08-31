@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
 @Setter
@@ -26,7 +27,8 @@ public class FTPConfigAdopt extends ExecuteFTP {
 
     private FTPLogin ftpLogin;
 
-
+    private Session session;
+    private ConcurrentHashMap<String,Channel> hashMap=new ConcurrentHashMap<>();
 
     private List<String> whiteCommandList;
     private int reconnectCount=0;

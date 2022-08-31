@@ -31,7 +31,9 @@ public class EeventEntity {
     public String getServerIp() {
         return serverIp;
     }
-//    public String getHashM
+    public String getComplieName(){
+        return serverIp+this.name;
+    }
 
     public void setServerIp(String serverIp) {
         this.serverIp = serverIp;

@@ -25,6 +25,4 @@ public class FTPLogin {
     private String passsword;
     private String src;
     private String filename;
-    private Session session;
-    private Map<String,Channel> channel=new ConcurrentHashMap<>();
 }

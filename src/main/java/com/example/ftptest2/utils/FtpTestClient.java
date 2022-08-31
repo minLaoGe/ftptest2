@@ -75,7 +75,7 @@ public class FtpTestClient {
             session.setPassword(ftpLogin.getPasssword());
             session.setConfig("StrictHostKeyChecking", "no");
             session.connect();
-            ftpConfigAdopts.getFtpLogin().setSession(session);
+            ftpConfigAdopts.setSession(session);
             log.info("登录服务器成功======{}",gson.toJson(ftpConfigAdopts.getFtpLogin().getRemotehost()));
             return true;
         } catch (JSchException e) {
@@ -99,7 +99,7 @@ public class FtpTestClient {
     }
     public  void downloadFile(FTPConfigAdopt ftpConfigAdopts,EeventEntity eeventEntity) {
         log.trace("Entering downloadFile() method");
-
+        eeventEntity.setServerIp(ftpConfigAdopts.getFtpLogin().getRemotehost());
         try {
             String key=ftpConfigAdopts.getFtpLogin().getRemotehost()+ftpConfigAdopts.getFtpLogin().getUsername();
 
@@ -108,7 +108,6 @@ public class FtpTestClient {
             }else {
                 initSessionConnection(ftpConfigAdopts);
             }
-            eeventEntity.setServerIp(ftpConfigAdopts.getFtpLogin().getRemotehost());
             beginBoradFirstPayMessage(ftpConfigAdopts,eeventEntity);
         } catch (Exception ex) {
             log.error("error:",ex);
@@ -151,16 +150,16 @@ public class FtpTestClient {
         Channel channel=null;
         try {
                 while (true){
-                     channel=ftpConfigAdopts.getFtpLogin().getSession().openChannel("exec");
+                     channel=ftpConfigAdopts.getSession().openChannel("exec");
                     ((ChannelExec)channel).setCommand(event.getCompliteComand());
                     log.info("command:{}",event.getCompliteComand());
                     ((ChannelExec)channel).setErrStream(System.err);
                     InputStream in=channel.getInputStream();
                     channel.connect();
-                    ftpConfigAdopts.getFtpLogin().getChannel().put(EventEmum.CHAT_EVENT.getName(), channel);
+//                    ftpConfigAdopts.getFtpLogin().getChannel().put(EventEmum.CHAT_EVENT.getName(), channel);
                     byte[] tmp=new byte[4096];
-                    if (!hashMap.containsKey(event.getServerIp())){
-                        hashMap.put(event.getServerIp(),ftpConfigAdopts);
+                    if (!hashMap.containsKey(event.getComplieName())){
+                        hashMap.put(event.getComplieName(),ftpConfigAdopts);
                     }
                     while(true){
                         while(in.available()>0){
@@ -195,12 +194,12 @@ public class FtpTestClient {
             if (!Objects.isNull(channel)&&!channel.isClosed()){
                 channel.disconnect();
             }
-            if (hashMap.containsKey(event.getServerIp())){
-                hashMap.remove(event.getServerIp());
+            if (hashMap.containsKey(event.getComplieName())){
+                hashMap.remove(event.getComplieName());
             }
-          /*  if (ftpConfigAdopts.getFtpLogin().getSession().isConnected()){
-                ftpConfigAdopts.getFtpLogin().getSession().disconnect();
-            }*/
+            if (ftpConfigAdopts.getSession().isConnected()){
+                ftpConfigAdopts.getSession().disconnect();
+            }
         }
 
         // use the get method , if you are using android remember to remove "file://" and use only the relative path
