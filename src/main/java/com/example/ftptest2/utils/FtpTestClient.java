@@ -44,8 +44,9 @@ public class FtpTestClient {
     public  void begin(){
         ftpConfigAdopt= new FTPConfigAdopt(AllServersUtils.getFtpClient(0));
         EeventEntity eventEntity = EeventEntity.getEventEntity(EventEmum.CHAT_EVENT);
-
-        downloadFile(ftpConfigAdopt,eventEntity);
+       String compliteComand = eventEntity.getCompliteComand();
+        eventEntity.setExceptionCommand(compliteComand);
+       downloadFile(ftpConfigAdopt,eventEntity);
     }
     public void ListenOtherServers(com.example.ftptest2.enitity.FTPClient ftpClient){
 
@@ -100,7 +101,13 @@ public class FtpTestClient {
         log.trace("Entering downloadFile() method");
 
         try {
-            initSessionConnection(ftpConfigAdopts);
+            String key=ftpConfigAdopts.getFtpLogin().getRemotehost()+ftpConfigAdopts.getFtpLogin().getUsername();
+
+            if (hashMap.containsKey(key)){
+                ftpConfigAdopts=hashMap.get(key);
+            }else {
+                initSessionConnection(ftpConfigAdopts);
+            }
             eeventEntity.setServerIp(ftpConfigAdopts.getFtpLogin().getRemotehost());
             beginBoradFirstPayMessage(ftpConfigAdopts,eeventEntity);
         } catch (Exception ex) {

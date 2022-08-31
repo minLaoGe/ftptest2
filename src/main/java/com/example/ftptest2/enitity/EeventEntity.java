@@ -17,11 +17,21 @@ public class EeventEntity {
     private String name;
     private String desc;
     private String serverIp;
+    private String exceptionCommand;
 
+
+    public String getExceptionCommand() {
+        return exceptionCommand;
+    }
+
+    public void setExceptionCommand(String exceptionCommand) {
+        this.exceptionCommand = exceptionCommand;
+    }
 
     public String getServerIp() {
-        return serverIp+name;
+        return serverIp;
     }
+//    public String getHashM
 
     public void setServerIp(String serverIp) {
         this.serverIp = serverIp;
@@ -75,7 +85,7 @@ public class EeventEntity {
         }
  }
     public String getCommandSuffix() {
-        if (this.commandSuffix.contains("&{keyword}")){
+        if (StringUtils.isNotEmpty(this.commandSuffix)&&this.commandSuffix.contains("&{keyword}")){
             for (String keyWord : this.keyWords) {
                 String s = this.commandSuffix.replace("&{keyword}", keyWord);
                 return s;

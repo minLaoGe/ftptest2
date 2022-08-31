@@ -11,8 +11,8 @@ public enum EventEmum {
 
 //    CHAT_EVENT(null,"tail -200f ","|grep 发送短信","/home/app/logs/mobilemsg/&{date}/mobilemsg/msg.log","chatEvent","支付duanx"),
     CHAT_EVENT(null,"tail -200f ",null,"/home/app/logs/mobilemsg/&{date}/mobilemsg/msg.log","chatEvent","支付duanx"),
-    LOGIN_EVENT(Arrays.asList("13020162922"),"tail -200f ","|grep &{keyword}","/home/app/logs/unifyuser/unifyUser/root.log","loginEvent","登录短信")
-//    LOGIN_EVENT(Arrays.asList("13020162922"),"tail -200f ",null,"/home/app/logs/unifyuser/unifyUser/root.log","loginEvent","登录短信")
+//    LOGIN_EVENT(Arrays.asList("13020162922"),"tail -20000f ","|grep &{keyword}","/home/app/logs/unifyuser/unifyUser/root.log","loginEvent","登录短信")
+    LOGIN_EVENT(null,"tail -20000f ",null,"/home/app/logs/unifyuser/unifyUser/root.log","loginEvent","登录短信")
     ;
 
     private List<String> keyWords;
