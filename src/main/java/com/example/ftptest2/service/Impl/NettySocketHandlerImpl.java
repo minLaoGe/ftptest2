@@ -19,7 +19,7 @@ public class NettySocketHandlerImpl implements NettySocketServer {
     @Override
     public void handleMessage(String event,String message) {
 
-        socketIOServer.getBroadcastOperations().sendEvent(event, message +"</br>  ");
+        socketIOServer.getBroadcastOperations().sendEvent(event, message.replaceAll("\\n","</br></br> "));
 
     }
 

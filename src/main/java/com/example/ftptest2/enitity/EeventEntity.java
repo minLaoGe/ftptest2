@@ -16,9 +16,30 @@ public class EeventEntity {
     private String target;
     private String name;
     private String desc;
-    private String serverIp;
     private String exceptionCommand;
+    private String host;
 
+    //用来广播的事件
+    private String boastEventName;
+
+    public String getBoastEventName() {
+        if (StringUtils.isEmpty(boastEventName)){
+            return name;
+        }
+        return boastEventName;
+    }
+
+    public void setBoastEventName(String boastEventName) {
+        this.boastEventName = boastEventName;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
 
     public String getExceptionCommand() {
         return exceptionCommand;
@@ -28,16 +49,13 @@ public class EeventEntity {
         this.exceptionCommand = exceptionCommand;
     }
 
-    public String getServerIp() {
-        return serverIp;
-    }
-    public String getComplieName(){
-        return serverIp+this.name;
+
+    public String getHostAndUserName(){
+        return this.host+this.name;
     }
 
-    public void setServerIp(String serverIp) {
-        this.serverIp = serverIp;
-    }
+
+
 
     public String getCommand() {
         if (command==null){
@@ -54,7 +72,8 @@ public class EeventEntity {
         this.keyWords = keyWords;
     }
 
-    public static EeventEntity  getEventEntity(EventEmum eventEmum){
+
+    public static EeventEntity  getEventEntity(EventEmum eventEmum,FTPConfigAdopt eventAdopt){
         EeventEntity eeventEntity = new EeventEntity();
         eeventEntity.setTarget(eventEmum.getTarget());
         eeventEntity.setDesc(eventEmum.getDesc());
@@ -62,6 +81,7 @@ public class EeventEntity {
         eeventEntity.setName(eventEmum.getName());
         eeventEntity.setCommandSuffix(eventEmum.getCommandSuffix());
         eeventEntity.setKeyWords(eventEmum.getKeyWords());
+        eeventEntity.setHost(eventAdopt.getFtpLogin().getRemotehost());
         return  eeventEntity;
     }
 
@@ -109,6 +129,7 @@ public class EeventEntity {
     public String getName() {
         return name;
     }
+
 
     public void setName(String name) {
         this.name = name;

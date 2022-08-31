@@ -14,9 +14,9 @@
 <div id="app" >
     <div style="position: fixed">
         <label>请输入手机号: </label>
-        <input placeholder="13020162922" :value="phonenum" > </input>
-        <button @click="getMoney()">确定搜索</button>
-        <a style="font-color: red">{{tips}}<a/>
+        <input placeholder="13020162922" v-model="phonenum" />
+        <button @click="beginSearch()">确定搜索</button>
+        <a style="font-color: red">{{tips}}</a>
     </div>
 
     <br/>
@@ -37,28 +37,45 @@
                 tips: "",
                 socket: "",
                 prefix: "loginEvent",
+                io2: "",
+                nowEvent: "",
             }
         },
         mounted() {
           this.defaultBeginSOcket(this.prefix+this.phonenum);
+          this.getMoney();
         },
         methods: {
             defaultBeginSOcket: function(event){
+                let that=this;
                 let url = getUrl();
                 console.log("开始监听事件:",event)
+                // url=url.replace("8080","8081");
                 console.log("开始链接socket:",url)
-                this.socket = io.connect(url);
-                socket=this.socket;
+                if (this.socket!==''){
+                    this.socket.reconnect();
+                }else {
+                    this.socket = io.connect(url);
+                }
                 // client-side
-                socket.on("connect", () => {
-                    console.log("开始建立链接")
+                this.socket.on("connect", () => {
+                    console.log("建立链接")
                 });
-                let that = this;
-                socket.on(event, (data) => {
+                this.socket.on('disconnect', function() {
+                    console.log("关闭链接")
+                });
+                that.nowEvent=event;
+                this.beginListenEvent(event);
+            },
+            beginListenEvent: function (event){
+                let that=this;
+                this.nowEvent=event;
+                console.log("开始监听",event)
+                this.socket.on(event, (data) => {
                     console.log(data); // x8WIv7-mJelg7on_ALbx
                     that.message += data;
-                    console.log(socket.connected); // x8WIv7-mJelg7on_ALbx
-                    const engine = socket.io.engine;
+                    console.log(that.socket.connected); // x8WIv7-mJelg7on_ALbx
+                    const engine = that.socket.io.engine;
                     console.log(engine.transport.name); // in most cases, prints "polling"
 
                     engine.on("packet", ({type, data}) => {
@@ -67,15 +84,20 @@
                     });
                 });
             },
-            closeSocket:function (){
-                this.socket.disconnect();
+            removeLister:function (event){
+                this.socket.removeListener(event);
+                console.log("移除监听",event);
+            },
+            beginSearch: async function (){
+                let that=this;
+               await that.removeLister(that.nowEvent);
+                await  this.beginListenEvent(this.prefix+this.phonenum);
+                await  that.getMoney();
             },
              getMoney: function() {
                 let that=this;
-                 that.closeSocket();
-
-                 this.defaultBeginSOcket(this.prefix+this.phonenum);
-                get("/changeKeyWord",this.phonenum).then(function (res) {
+                console.log(that.phonenum)
+                get("/changeKeyWord",that.phonenum).then(function (res) {
                     console.log(res)
                     debugger
                     if (res.success){
@@ -84,7 +106,7 @@
                         location.reload();
                     }*/
                 }).catch(function (res){
-                    location.reload();
+                    // location.reload();
                 })
             }
         }

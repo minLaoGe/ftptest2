@@ -28,7 +28,7 @@ public class FTPConfigAdopt extends ExecuteFTP {
     private FTPLogin ftpLogin;
 
     private Session session;
-    private ConcurrentHashMap<String,Channel> hashMap=new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String,Channel> comandAndChnnelRealtion=new ConcurrentHashMap<>();
 
     private List<String> whiteCommandList;
     private int reconnectCount=0;
