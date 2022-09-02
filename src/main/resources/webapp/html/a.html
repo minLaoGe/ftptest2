@@ -25,6 +25,7 @@
       }
     },
     mounted(){
+        this.getMoney();
         let url = getUrl("");
         console.log("开始链接socket:",url)
         const socket = io.connect(url);
@@ -46,7 +47,23 @@
                 console.log(data)
             });
         });
-    }
+    },
+      methods:{
+          getMoney: function() {
+              let that=this;
+              console.log(that.phonenum)
+              get("/beginPayMesg").then(function (res) {
+                  console.log(res)
+                  if (res.success){
+                      that.tips="请求成功";
+                  }/*else {
+                        location.reload();
+                    }*/
+              }).catch(function (res){
+                  // location.reload();
+              })
+          }
+      }
   }).mount('#app')
 </script>
 </html>

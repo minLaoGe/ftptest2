@@ -21,5 +21,10 @@ public class BoasteCommand {
         boasteService.beginBoastLoginMess(phoneNumber);
         return ResponseEntity.getSuccess(null);
     }
+    @GetMapping("/beginPayMesg")
+    public ResponseEntity beginPayMesg() throws SftpException {
+        boasteService.beginBoastPayMess();
+        return ResponseEntity.getSuccess(null);
+    }
 }
 

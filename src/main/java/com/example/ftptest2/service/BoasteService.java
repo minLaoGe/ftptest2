@@ -5,4 +5,5 @@ import com.jcraft.jsch.SftpException;
 
 public interface BoasteService {
     public void beginBoastLoginMess(String keywords) throws SftpException;
+    public void beginBoastPayMess();
 }
