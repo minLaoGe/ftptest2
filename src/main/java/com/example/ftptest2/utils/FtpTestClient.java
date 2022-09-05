@@ -169,8 +169,8 @@ public class FtpTestClient {
                             int i=in.read(tmp, 0, 4096);
                             if(i<0)break;
                             String str = new String(tmp, 0, i);
-                            log.debug(str);
-                            log.debug("事件名称:{}",event.getBoastEventName());
+                            log.warn(str);
+                            log.warn("事件名称:{}",event.getBoastEventName());
 
                             messageHander.handleMessage(event.getBoastEventName(),str);
 
