@@ -61,9 +61,10 @@ axios.interceptors.response.use(response => {
  * @returns {Promise}
  */
 
- function get(url, params = {}) {
+ function get(url, params) {
   let URL = url;
-  // debugger
+
+  debugger
   if (params) {
  /*   for (const key in params) {
       URL += params[key] + "/";
